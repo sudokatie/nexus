@@ -66,9 +66,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// Prelude with common types
 pub mod prelude {
-    pub use crate::storage::{Block, BlockHash};
-    pub use crate::index::FileEntry;
-    pub use crate::crypto::DeviceId;
-    pub use crate::config::Config;
     pub use crate::{Error, Result};
+    // Types will be added as modules are implemented
 }
