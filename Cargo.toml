@@ -1,0 +1,55 @@
+[package]
+name = "nexus"
+version = "0.1.0"
+edition = "2021"
+description = "Peer-to-peer file synchronization with content-addressed storage"
+license = "MIT"
+repository = "https://github.com/sudokatie/nexus"
+keywords = ["p2p", "sync", "file-sharing", "decentralized"]
+categories = ["network-programming", "filesystem"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Networking
+quinn = "0.10"
+
+# Cryptography
+ring = "0.17"
+sha2 = "0.10"
+
+# Storage
+sled = "0.34"
+
+# Filesystem
+notify = "6"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+bincode = "1"
+
+# Utilities
+hex = "0.4"
+directories = "5"
+hostname = "0.3"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+thiserror = "1"
+
+[dev-dependencies]
+tempfile = "3"
+criterion = "0.5"
+
+[[bench]]
+name = "chunker_bench"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
