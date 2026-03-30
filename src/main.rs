@@ -1,6 +1,7 @@
 //! Nexus CLI - P2P file synchronization
 
 use clap::{Parser, Subcommand};
+use nexus::cli;
 
 #[derive(Parser)]
 #[command(name = "nexus")]
@@ -28,6 +29,10 @@ enum Commands {
         /// Folder ID (generated if not provided)
         #[arg(long)]
         id: Option<String>,
+        
+        /// Folder type (send-receive, send-only, receive-only)
+        #[arg(long, value_name = "TYPE")]
+        folder_type: Option<String>,
     },
     
     /// Remove folder from sync
@@ -35,6 +40,9 @@ enum Commands {
         /// Folder ID
         folder_id: String,
     },
+    
+    /// List folders
+    Folders,
     
     /// Device management
     Device {
@@ -82,65 +90,67 @@ enum DeviceAction {
 }
 
 fn main() {
-    tracing_subscriber::fmt::init();
-    
     let cli = Cli::parse();
     
-    match cli.command {
+    let result = match cli.command {
         Commands::Init { name } => {
-            let device_name = name.unwrap_or_else(|| {
-                hostname::get()
-                    .map(|h| h.to_string_lossy().to_string())
-                    .unwrap_or_else(|_| "nexus-device".to_string())
-            });
-            println!("Initializing device: {}", device_name);
-            println!("Device initialization not yet implemented");
+            cli::init::run(name, None)
+                .map_err(|e| e.to_string())
         }
         
-        Commands::Add { path, id } => {
-            println!("Adding folder: {}", path);
-            if let Some(folder_id) = id {
-                println!("  ID: {}", folder_id);
-            }
-            println!("Folder management not yet implemented");
+        Commands::Add { path, id, folder_type } => {
+            cli::folder::add(path, id, folder_type)
+                .map_err(|e| e.to_string())
         }
         
         Commands::Remove { folder_id } => {
-            println!("Removing folder: {}", folder_id);
-            println!("Folder management not yet implemented");
+            cli::folder::remove(folder_id)
+                .map_err(|e| e.to_string())
+        }
+        
+        Commands::Folders => {
+            cli::folder::list()
+                .map_err(|e| e.to_string())
         }
         
         Commands::Device { action } => match action {
             DeviceAction::List => {
-                println!("No devices configured");
+                cli::device::list()
+                    .map_err(|e| e.to_string())
             }
             DeviceAction::Add { device_id, name } => {
-                println!("Adding device: {}", device_id);
-                if let Some(n) = name {
-                    println!("  Name: {}", n);
-                }
+                cli::device::add(device_id, name)
+                    .map_err(|e| e.to_string())
             }
             DeviceAction::Remove { device_id } => {
-                println!("Removing device: {}", device_id);
+                cli::device::remove(device_id)
+                    .map_err(|e| e.to_string())
             }
             DeviceAction::Id => {
-                println!("Device ID not yet generated (run 'nexus init' first)");
+                cli::device::show_id()
+                    .map_err(|e| e.to_string())
             }
         },
         
         Commands::Status => {
-            println!("Nexus sync status:");
-            println!("  Not initialized (run 'nexus init' first)");
+            cli::status::show()
+                .map_err(|e| e.to_string())
         }
         
         Commands::Sync => {
             println!("Forcing sync...");
-            println!("Sync not yet implemented");
+            println!("Full sync requires daemon to be running.");
+            Ok(())
         }
         
         Commands::Serve { listen } => {
-            println!("Starting nexus daemon on {}", listen);
-            println!("Daemon not yet implemented");
+            cli::serve::run(listen)
+                .map_err(|e| e.to_string())
         }
+    };
+    
+    if let Err(e) = result {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
     }
 }
